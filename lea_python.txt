@@ -1,0 +1,896 @@
+﻿########################  python  ########################
+###list.append vs list.extend
+li = ['a', 'b', 'c']  
+li.extend(['d', 'e', 'f'])   
+li  ::['a', 'b', 'c', 'd', 'e', 'f']  
+li.append(['d', 'e', 'f'])   
+li  ::['a', 'b', 'c', ['d', 'e', 'f']]  
+
+##np.reshape的用法
+z = np.array([[1, 2, 3, 4],[5, 6, 7, 8],[9, 10, 11, 12],[13, 14, 15, 16]])
+print(z)
+print(z.shape)
+print(z.reshape(-1))
+print(z.reshape(-1,1))
+print(z.reshape(1,-1))
+
+#随机排序列表
+import random
+random.shuffle (list)
+
+
+########################  data  ########################
+###data mining with python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels as sm
+import scipy as scp
+#读入数据
+data_df=pd.read_csv("D:/work/0_lea/all_train_data.csv",na_values= 'NaN' )
+data_train = pd.read_csv("D:/work/sky_drive/kaoshi/broadband_train.csv",encoding='gbk')
+
+
+########################  data analize with python  ########################
+
+data_df.shape
+data_df.info()
+data_df.describe()
+
+#定义连续变量统计函数
+def stats(x):
+    return pd.Series([x.count(),x.min(),x.idxmin(),x.quantile(.25),x.median(),\
+x.quantile(.75),x.max(),x.idxmax(),x.mean(),x.mad(),x.var(), x.std(),x.skew(),\
+x.kurt()],index = ['Count','Min','Whicn_Min', 'Q1','Median','Q3','Max',\
+'Which_Max','Mean','Mad', 'Var','Std','Skew','Kurt'])
+#使用统计函数统计
+stats(data_df.age)
+#多个连续变量统计
+data_try = data_df[['age','l_fin_charge','ll_fin_charge']]
+data_try.apply(stats)
+
+data_df['age'].describe(percentiles=[0.01,0.05,0.25,0.5,0.75,0.95,0.99])
+
+
+#分类变量，频率表
+def table_table(factor):
+    table = factor.groupby(factor).count()
+    freq = table.div(table.sum())
+    try_try = {'count':table,'freq':freq}
+    freq_table=pd.DataFrame(try_try)
+    return freq_table    
+table_table(data_df.gender)
+
+#连续变量，频率分布表
+factor = pd.cut(data_df.age,5)
+data_df['age'].groupby(factor).describe()
+
+#定义一个函数计算单个变量分布
+def hist_table(factor,n):
+    cut_cut=pd.cut(factor,n)
+    return factor.groupby(cut_cut).describe()
+hist_table(data_df.age,5)
+#定义一个函数，计算频率分布
+def freq_table(factor,n):
+    cut_cut=pd.cut(factor,n)
+    mean_mean = factor.groupby(cut_cut).mean()
+    table = factor.groupby(cut_cut).count()
+    freq = table.div(table.sum())
+    try_try={"mean":mean_mean,"count":table,"freq":freq}
+    freq_table=pd.DataFrame(try_try)
+    return freq_table
+freq_table(data_df.age,10)
+
+#freq_add = []
+#for i in range(1,len(freq)+1):
+#    freq_add.append(freq.values[:i].sum())
+#freq_addd=pd.Series(freq_add)
+#freq_table=pd.DataFrame({mean_mean,table,freq,freq_addd})
+#try_try={"mean":mean_mean,"count":table,"freq":freq,"freq_add":freq_addd}
+#freq_table=pd.DataFrame(try_try)
+#try_try
+#截断与截尾 https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.mstats.winsorize.html
+#scp.stats.mstats.winsorize()
+
+#分类变量与连续变量统计
+data_df['age'].groupby(data_df['gender']).describe()
+
+#分类汇总表
+data_df['gender'].groupby(data_df['gender']).count()
+#透视表 http://python.jobbole.com/81212/
+pd.pivot_table(data_df,index=['urban_rural_id','shopping_name'],columns=["gender"],\
+               values=["ter_price"],aggfunc=[np.sum,np.mean],margins=True)
+#交叉表
+table=pd.crosstab(data_df['urban_rural_id'],data_df["gender"],margins=True)
+pd.crosstab(data_df['urban_rural_id'],data_df["gender"], normalize='columns',margins=True)
+pd.crosstab(data_df['urban_rural_id'],data_df["gender"], normalize='index',margins=True)
+pd.crosstab(data_df['urban_rural_id'],data_df["gender"], normalize='all',margins=True)
+#def perConvert(ser):
+#    return ser/float(ser[-1])
+#table.apply(perConvert,axis=1)
+
+########################  data cleaning with python  ########################
+
+##
+##缺失值填充
+loanamount_mean = train_x['LoanAmount'].mean()
+train_x['LoanAmount'] = train_x['LoanAmount'].fillna(value=loanamount_mean)
+test_x['LoanAmount'] = test_x['LoanAmount'].fillna(value=loanamount_mean)
+gender_mode = train_x['Gender'].mode()
+train_x['Gender'] = train_x['Gender'].fillna(value=gender_mode[0])
+test_x['Gender'] = test_x['Gender'].fillna(value=gender_mode[0])
+
+for col in ['Gender', 'Married', 'Dependents', 'Self_Employed', 'Credit_History', 'Loan_Amount_Term']:
+    loan_train[col].fillna(loan_train[col].mode()[0], inplace=True)
+
+##数值替换
+loan_train['Dependents'] = loan_train['Dependents'].replace('3+', 3)
+loan_train_label = loan_train_label['Loan_Status'].map({'Y':1, 'N':0})
+test_x['Dependents'][test_x['Dependents']=='3+'] = '3'
+
+##时间处理
+kobe_cl['game_date'] = pd.to_datetime(kobe_cl['game_date'])
+kobe_cl['game_year'] = kobe_cl['game_date'].dt.year
+kobe_cl['game_month'] = kobe_cl['game_date'].dt.month
+s.dt.date
+s.dt.hour
+s.dt.second
+s.dt.quarter
+
+##数据分箱
+bins = [0,0.2,0.4,0.6,0.8,1]
+cats = pd.cut(train_x['income'],bins,labels=np.arange(1,6))
+#等宽离散化
+k=5
+train_x['d1'] = pd.cut(train_x['income'],k,labels = range(k))
+#等频离散化
+k=5
+train_x['d2'] = pd.qcut(train_x['income'],k,labels = range(k))
+
+
+##独热 pandas.get_dummies()
+train_onehot = pd.get_dummies(train_x,columns=['Gender','Married'],drop_first=True)
+train_onehot = train_onehot.astype('int')
+
+##标准化
+#Z-score标准化
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+data[['mpg','displacement','horsepower','weight','acceleration']] = scaler.fit_transform(data[['mpg','displacement','horsepower','weight','acceleration']])
+
+scaler = StandardScaler()
+scaler_train = scaler.fit(data_train_x)
+data_train_x1 = scaler_train.transform(data_train_x)
+
+#01标准化
+from sklearn.preprocessing import MinMaxScaler
+min_max_scaler = MinMaxScaler()
+scaler_train = scaler.fit(data_train_x)
+data_train_x1 = scaler_train.transform(data_train_x)
+
+#删除变量
+data = data_df.drop('Class',axis=1)
+
+########################  data mining with python  ########################
+已知：data_z 求：data_pre
+1.data_z、data_pre数据预处理
+2.data_z抽样拆分为data_train+data_test,建模
+3.根据模型预测data_pre
+
+from sklearn.cross_validation import train_test_split
+from sklearn.linear_model.logistic import LogisticRegression
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+from sklearn.model_selection import GridSearchCV
+import xgboost as xgb
+from xgboost.sklearn import XGBClassifier
+import lightgbm as lgb
+
+from sklearn.cross_validation import train_test_split
+data_train_x, data_test_x, data_train_y, data_test_y = train_test_split(train_x_x, train_y, test_size=0.25,random_state=13)
+#分层抽样
+data_train_x, data_test_x, data_train_y, data_test_y = train_test_split(X, Y, test_size=0.3,random_state=13,stratify=Y)
+
+def show_accuracy(model,x_train,x_test,y_train,y_test):
+    from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+    from sklearn.metrics import roc_curve
+    from sklearn import metrics
+    
+    y_train_pre = model.predict(x_train)
+    probs_train = model.predict_proba(x_train)[:,1]
+    print('训练集正确率(accuracy_score)：', accuracy_score(y_train, y_train_pre))
+    print('训练集召回率(recall_score)：', recall_score(y_train, y_train_pre))
+	print('训练集精确度：', precision_score(y_train, y_train_pre))
+    print('训练集F1 值：', f1_score(y_train, y_train_pre))
+    fpr,tpr,thresholds = roc_curve(y_train,probs_train)
+    print('训练集AUC：',metrics.auc(fpr,tpr))
+    
+    y_test_pre = model.predict(x_test)
+    probs_test = model.predict_proba(x_test)[:,1]
+    print('测试集正确率(accuracy_score)：', accuracy_score(y_test, y_test_pre))
+    print('测试集召回率(recall_score)：', recall_score(y_test, y_test_pre))
+	print('测试集精确度：', precision_score(y_test, y_test_pre))
+    print('测试集F1 值：', f1_score(y_test, y_test_pre))
+    fpr,tpr,thresholds = roc_curve(y_test,probs_test)
+    print('测试集AUC：',metrics.auc(fpr,tpr))
+	
+show_accuracy(model,data_train_x, data_test_x, data_train_y, data_test_y)
+
+
+#逻辑回归
+from sklearn.linear_model.logistic import LogisticRegression
+lr = LogisticRegression(penalty='l2') #设置样本为非平衡样本  设置正负样本权重lr = LogisticRegression(class_weight={0:0.3,1:0.7}) 
+lr_fit = lr.fit(data_train_x, data_train_y)
+lr_train_pred01 = lr_fit.predict(data_train_x)
+print('训练集正确率：', accuracy_score(data_train_y, lr_train_pred01))
+print('训练集召回率：', recall_score(data_train_y, lr_train_pred01))
+print('训练集精确度：', precision_score(data_train_y, lr_train_pred01))
+print('训练集F1 值：', f1_score(data_train_y, lr_train_pred01))
+lr_test_pred01= lr_fit.predict(data_test_x)
+print('测试集正确率：', accuracy_score(data_test_y, lr_test_pred01))
+print('测试集召回率：', recall_score(data_test_y, lr_test_pred01))
+print('测试集精确度：', precision_score(data_test_y, lr_test_pred01))
+print('测试集F1 值：', f1_score(data_test_y, lr_test_pred01))
+ans_ans['lr_label'] = lr_fit.predict(data_0)
+#调参
+param = {'C':np.arange(0.5,2,0.2),
+         'penalty':['l1','l2']
+        }
+model = GridSearchCV(lr, param_grid=param, cv=4,scoring='recall',n_jobs=-1)
+model_lr = model.fit(train_x, train_y)
+lr_best = model_lr.best_estimator_
+probs01 = lr_best.predict_proba(test_x)[:,1]
+pred_best_auc = roc_auc_score(test_y,probs01)
+
+
+
+
+#KNN分类
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier(n_neighbors=10,n_jobs=-1)
+model = GridSearchCV(knn, param_grid={'n_neighbors':np.arange(2,15)}, cv=4,scoring='f1')
+model.fit(data_train_x, data_train_y)
+print('最优参数：', model.best_params_)
+
+knn = KNeighborsClassifier(n_neighbors=7,n_jobs=-1)
+knn_fit = knn.fit(data_train_x, data_train_y)
+knn_test_pred01 = knn_fit.predict(data_test_x)
+print('测试集正确率：', accuracy_score(data_test_y, knn_test_pred01))
+print('测试集召回率：', recall_score(data_test_y, knn_test_pred01))
+print('测试集精确度：', precision_score(data_test_y, knn_test_pred01))
+print('测试集F1 值：', f1_score(data_test_y, knn_test_pred01))
+ans_ans['knn_label'] = knn_fit.predict(data_0)
+
+#SVM
+from sklearn import svm
+clf=svm.SVC(C=0.8, kernel='rbf')
+param_test = {
+ 'C':np.arange(0.1,2.0,0.1),
+ 'kernel':['linear','poly','rbf','sigmoid','precomputed']}
+gsearch1 = GridSearchCV(clf,param_grid = param_test,scoring='f1',n_jobs=-1,iid=False,cv=4)
+gsearch1.fit(data_x,data_y)
+gsearch1.best_params_, gsearch1.best_score_
+clf=svm.SVC(C=0.8, kernel='rbf')
+clf.fit(x_train, y_train)
+lr_train_pred01 = clf.predict(x_train)
+print('训练集正确率：', accuracy_score(y_train, lr_train_pred01))
+print('训练集召回率：', recall_score(y_train, lr_train_pred01))
+print('训练集精确度：', precision_score(y_train, lr_train_pred01))
+print('训练集F1 值：', f1_score(y_train, lr_train_pred01))
+lr_test_pred01= clf.predict(x_test)
+print('测试集正确率：', accuracy_score(y_test, lr_test_pred01))
+print('测试集召回率：', recall_score(y_test, lr_test_pred01))
+print('测试集精确度：', precision_score(y_test, lr_test_pred01))
+print('测试集F1 值：', f1_score(y_test, lr_test_pred01))
+
+#随机森林
+from sklearn.ensemble import RandomForestClassifier
+rf = RandomForestClassifier(n_estimators=50, criterion='gini', max_depth=7, min_samples_leaf=11, min_samples_split=30, max_features=0.5,n_jobs=-1)
+param = {'n_estimators':np.arange(50,200,25),
+         'max_features':np.arange(2, 8),
+        'max_depth':np.arange(2,10,2), 
+        #'min_samples_leaf':np.arange(2,10,2),
+        #'min_samples_split':np.arange(2, 53, 10)
+		'class_weight':['balanced', None]
+        }
+model = GridSearchCV(rf, param_grid=param, cv=4,scoring='f1',n_jobs=-1)
+model.fit(data_train_x, data_train_y)
+print('最优参数：', model.best_params_)
+#print '特征重要度：', zip(x.columns, model.feature_importances_)    # model.best_estimator_.feature_importances_
+#print '正确率：', np.mean(y_pred == y)
+rf = RandomForestClassifier(n_estimators=50, criterion='gini', max_depth=9, min_samples_leaf=7, min_samples_split=30, max_features=0.5,n_jobs=-1)
+rf_fit = rf.fit(data_train_x, data_train_y)
+rf_train_pred01 = rf_fit.predict(data_train_x)
+print('训练集正确率：', accuracy_score(data_train_y, rf_train_pred01))
+print('训练集召回率：', recall_score(data_train_y, rf_train_pred01))
+print('训练集精确度：', precision_score(data_train_y, rf_train_pred01))
+print('训练集F1 值：', f1_score(data_train_y, rf_train_pred01))
+rf_test_pred01= rf_fit.predict(data_test_x)
+print('测试集正确率：', accuracy_score(data_test_y, rf_test_pred01))
+print('测试集召回率：', recall_score(data_test_y, rf_test_pred01))
+print('测试集精确度：', precision_score(data_test_y, rf_test_pred01))
+print('测试集F1 值：', f1_score(data_test_y, rf_test_pred01))
+ans_ans['rf_label'] = model.predict(data_0)
+
+#xgb
+##https://blog.csdn.net/han_xiaoyang/article/details/52665396
+import xgboost as xgb
+from xgboost.sklearn import XGBClassifier
+gbm = xgb.XGBClassifier(learning_rate =0.1,n_estimators=100,max_depth=5,min_child_weight=1,gamma=0,subsample=0.8,colsample_bytree=0.8,objective= 'binary:logistic',nthread=4,scale_pos_weight=1,seed=13)
+param_test = {
+ 'max_depth':range(3,10,1),
+ 'min_child_weight':range(3,10,1),
+ 'max_depth':range(3,10,1),
+ 'min_child_weight':range(3,10,1),
+ 'gamma':range(0.1,0.8,0.1),
+ 'subsample':range(0.1,1,0.1),
+ 'colsample_bytree':range(0.1,1,0.1)}
+model = GridSearchCV(gbm,param_grid = param_test,scoring='recall',n_jobs=-1,cv=4)
+model.fit(train_x, train_y)
+print(model.best_params_,model.best_score_)
+model1 = model.best_estimator_
+pred_xgb = model1.predict(test_x)
+print(classification_report(test_y, pred_xgb))
+
+
+#lightgbm
+import lightgbm as lgb
+lgbm = lgb.LGBMClassifier(silent=False)
+param_dist = {"max_depth": np.arange(10,40,5),
+            "learning_rate" : [0.02,0.05,0.07],
+            "num_leaves": [100,200,300],
+            "n_estimators": np.arange(50,100,10)
+             }
+model = GridSearchCV(lgbm, n_jobs=-1, param_grid=param_dist, cv = 3, scoring="f1", verbose=5)
+model.fit(data_train_x,data_train_y)
+model1 = model.best_estimator_
+#show_accuracy(model1,data_train_x, data_test_x, data_train_y, data_test_y)
+pred_lgb = model1.predict(data_test_x)
+print(classification_report(data_test_y, pred_lgb))
+
+
+#GBDT
+from sklearn.ensemble import GradientBoostingClassifier
+gbdt=GradientBoostingClassifier(loss='deviance', learning_rate=0.005
+, n_estimators=1200, subsample=0.85, min_samples_split=120 , min_samples_leaf=60
+, max_depth=9 ,max_features=7)
+fit = gbdt.fit(data_train_x, data_train_y)
+y_pred_class = fit.predict(data_test_x)
+
+#adaboost
+from sklearn.ensemble import AdaBoostClassifier
+adb = AdaBoostClassifier(random_state=seed)
+param_test = {
+        'algorithm': ['SAMME', 'SAMME.R'],
+        'n_estimators': list(range(1,100,10)),
+        'learning_rate': [1e-3, 1e-2, 1e-1, 1]
+		}
+ada_grid = GridSearchCV(estimator = adb,param_grid = param_test, cv = 4, scoring = scoring, n_jobs = -1)
+ada_grid.fit(X, Y)
+
+
+
+
+
+##########  regretion 
+##linear regretion
+from sklearn import datasets, linear_model
+from sklearn.metrics import explained_variance_score, mean_absolute_error, mean_squared_error, r2_score
+
+regr = linear_model.LinearRegression()
+regr.fit(X, Y)
+y_train_pred = regr.predict(X)
+y_test_pred = regr.predict(data_x_test)
+print("训练集的均方误差: ", round(mean_squared_error(Y, y_train_pred),3))
+print("训练集的平均绝对误差: ", round(mean_absolute_error(Y, y_train_pred),3))
+print("训练集的中值绝对误差: ", round(median_absolute_error(Y, y_train_pred),3))
+print("训练集的决定系数: ", round(r2_score(Y, y_train_pred),3))
+print("-"*30)
+print("测试集的均方误差: ", round(mean_squared_error(data_y_test, y_test_pred),3))
+print("测试集的平均绝对误差: ", round(mean_absolute_error(data_y_test, y_test_pred),3))
+print("测试集的中值绝对误差: ", round(median_absolute_error(data_y_test, y_test_pred),3))
+print("测试集的决定系数: ", round(r2_score(data_y_test, y_test_pred),3))
+
+
+
+#画图
+plt.scatter(regr.predict(X_train), regr.predict(X_train) - Y_train, c="g", alpha=0.5)
+plt.scatter(regr.predict(X_test), regr.predict(X_test) - Y_test, c="r")
+plt.hlines(y=0, xmin=0, xmax=50)
+
+##svr
+from sklearn import svm
+clf = svm.SVR()
+clf.fit(X, y) 
+clf.predict([[1, 1]])
+
+##RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.datasets import make_regression
+X, y = make_regression(n_features=4, n_informative=2,
+                        random_state=0, shuffle=False)
+regr = RandomForestRegressor(max_depth=2, random_state=0)
+regr.fit(X, y)
+RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=2,
+           max_features='auto', max_leaf_nodes=None,
+           min_impurity_decrease=0.0, min_impurity_split=None,
+           min_samples_leaf=1, min_samples_split=2,
+           min_weight_fraction_leaf=0.0, n_estimators=10, n_jobs=1,
+           oob_score=False, random_state=0, verbose=0, warm_start=False)
+print(regr.feature_importances_)
+[ 0.17339552  0.81594114  0.          0.01066333]
+print(regr.predict([[0, 0, 0, 0]]))
+
+##########  聚类
+##KMeans
+from sklearn.cluster import KMeans
+model = KMeans(n_clusters=3,random_state=111).fit(data)    #为使复现效果与PPT效果相同，设置随机种子为111
+#样本标签和簇质心
+data_label = model.labels_
+data_cluster = model.cluster_centers_
+
+# 选择不同k值比较聚类效果
+from sklearn.metrics import silhouette_score
+for i in np.arange(2,7):
+    model = KMeans(n_clusters=i,random_state=111).fit(auto_scaled)   
+    labels = model.labels_
+    print('轮廓系数(k=%d):'%(i),round(silhouette_score(auto_scaled,labels),3))
+
+##########
+ans_ans = data_test[['CUST_ID']]
+ans_ans['predition'] = y_pred_class
+ans_ans.columns = [u'subscriberID',u'prediction']
+ans_ans.to_csv('ans1.csv',sep=',',index=False)
+
+
+
+
+########################  模型评估  ########################
+
+##########混淆矩阵##########
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+##设置正常显示中文
+sns.set(font='SimHei')
+## 绘制热力图
+ax = sns.heatmap(confusion_matrix(test_y, y_pred), 
+                 annot=True, fmt='d', 
+                 xticklabels=["满意(0)","不满意(1)"], yticklabels=["满意(0)","不满意(1)"])
+ax.set_ylabel('真实')
+ax.set_xlabel('预测')
+ax.set_title('混淆矩阵热力图')
+
+##########分类结果指标##########
+from sklearn.metrics import classification_report
+print(classification_report(test_y, y_pred))
+
+##########绘制P-R曲线##########
+import matplotlib.pyplot as plt
+from sklearn.metrics import precision_recall_curve
+probs = clf.predict_proba(test_x)[:,0]
+precision,recall,thresholds = precision_recall_curve(test_y,probs,pos_label=0)
+
+plt.plot(recall, precision)
+plt.title('P-R曲线')
+plt.xlabel('召回率')
+plt.ylabel('精确率')
+plt.show()
+
+##########ROC曲线与AUC##########
+from sklearn.metrics import roc_curve
+probs = clf.predict_proba(test_x)[:,1]
+fpr,tpr,thresholds = roc_curve(test_y,probs)
+plt.plot(fpr, tpr)
+plt.xlabel('假正率')
+plt.ylabel('真正率')
+plt.title('ROC曲线')
+plt.show()
+
+from sklearn.metrics import roc_auc_score
+roc_auc_score(test_y,probs)
+
+from sklearn import metrics
+metrics.auc(fpr,tpr)
+
+##########计算对数损失##########
+from sklearn.metrics import log_loss
+print('损失函数:',log_loss(test_y,probs))
+
+##########模型固化##########
+#模型导出
+#import pickle
+from sklearn.externals import joblib
+filename = 'finalized_model.sav'
+joblib.dump(ols_model, filename)
+#模型导入
+loaded_model = joblib.load(filename)
+result = loaded_model.predict(data_test_xx)
+
+
+
+########################  spyder with python  ########################
+
+########################  deep learning with python  ########################
+
+############## tensorflow搭建神经网络
+import os
+os.system('cls')
+reset
+clear
+
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data #导入读取数据的input_data
+#在同一个文件夹下解压数据集到MNIST_data文件夹，然后用input_data函数读取，标签采用one_hot编码
+mnist = input_data.read_data_sets('MNIST_data', one_hot=True) 
+
+batch_size = 100 #每批数据大小
+learning_rate = 0.01 #学习率
+num_batchs = 10001 #训练轮数
+
+#定义模型
+#默认读取的数据是每一张图片由长度为784的向量组成，而非28×28的单通道数据。
+
+X_holder = tf.placeholder(tf.float32)#定义输入占位符，输入数据是[batch_size,784]
+y_holder = tf.placeholder(tf.float32)#定义输出占位符, 输出是[batch_size,10]
+
+Weights1 = tf.Variable(tf.truncated_normal([784, 250],stddev=0.01))#权重通过tf.truncated_normal进行正态初始化，标准差设置为0.01 
+biases1 = tf.Variable(tf.zeros([1,250]))#偏置初始化，0初始化
+W_plus_b1 = tf.nn.relu(tf.matmul(X_holder, Weights1) + biases1)#计算第一层全连接，激活函数采用relu,计算后数据大小变为 [batch_size,250]
+
+Weights2 = tf.Variable(tf.truncated_normal([250, 150],stddev=0.01))#权重通过tf.truncated_normal进行正态初始化，标准差设置为0.01
+biases2 = tf.Variable(tf.zeros([1,150]))#偏置初始化，0初始化
+W_plus_b2 = tf.nn.relu(tf.matmul(W_plus_b1, Weights2) + biases2)#计算第二层全连接，激活函数采用relu,计算后数据大小变为[batch_size,150]
+
+Weights3 = tf.Variable(tf.truncated_normal([150, 10], stddev=0.01)) #权重通过tf.truncated_normal进行正态初始化，标准差设置为0.01
+biases3 = tf.Variable(tf.zeros([1,10]))#偏置初始化，0初始化
+predict_y = tf.nn.softmax(tf.matmul(W_plus_b2, Weights3) + biases3)#通过softmax激活函数计算输出层,输出的数据大小为[batch_size,10]
+
+loss = tf.reduce_mean(-tf.reduce_sum(y_holder * tf.log(predict_y), 1))#定义损失函数为交叉熵
+optimizer = tf.train.GradientDescentOptimizer(learning_rate)#优化器为梯度下降，使用之前定义的学习率
+train = optimizer.minimize(loss)#定义优化过程为极小化损失函数
+
+session = tf.Session() #创建会话
+init = tf.global_variables_initializer()#初始化变量
+session.run(init)
+
+#训练过程
+for i in range(num_batchs):
+    train_images, train_labels = mnist.train.next_batch(batch_size)#通过next_batch方法导入批次数据
+    session.run(train, feed_dict={X_holder:train_images, y_holder:train_labels}) #给占位符输入数据
+    #每隔一定批次计算准确率    
+    if i % 1000 == 0:
+        #定义预测准确的规则，因为输出层经过softmax激活函数输出一个1×10向量，依次表示是数字0-9的概率，所以需要argmax返回概率最大标签
+        correct_prediction = tf.equal(tf.argmax(predict_y, 1), tf.argmax(y_holder, 1))#定义预测一致的规则
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))#定义计算准确率规则
+        train_accuracy = session.run(accuracy, feed_dict={X_holder:train_images, y_holder:train_labels})#计算训练过程中一个batch的准确率
+        print('step:%d train accuracy:%.4f ' %(i, train_accuracy))#打印准确率
+#计算测试集的预测标签并输出
+test_images, test_labels = mnist.test.next_batch(10000)#读取测试集，测试集共10000个数据。
+y_pred = tf.argmax(predict_y, 1) #返回最大概率的数字
+test_pred = session.run(y_pred, feed_dict={X_holder:test_images, y_holder:test_labels})#返回预测标签
+
+#将预测标签写入文件
+with open('肖锋_dl_result1.csv', 'w') as f:
+    f.write('predict labels'+'\n')#写入表头
+    #写入数据
+    for labels in test_pred:
+        f.write(str(labels) + '\n')
+
+
+############## tensorflow搭建卷积神经网络
+
+import os
+os.system('cls')
+reset
+clear
+
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data #导入读取数据的input_data
+#在同一个文件夹下解压数据集到MNIST_data文件夹，然后用input_data函数读取，标签采用one_hot编码
+mnist = input_data.read_data_sets('MNIST_data', one_hot=True) 
+
+batch_size = 200
+learning_rate = 0.001
+num_batchs = 1001
+
+#定义模型
+#默认读取的数据是每一张图片由长度为784的向量组成，而非28×28的单通道数据。
+
+X_holder = tf.placeholder(tf.float32)#定义输入占位符
+y_holder = tf.placeholder(tf.float32)#定义输出占位符
+X_images = tf.reshape(X_holder, [-1, 28, 28, 1])#数据变成28×28单通道，数据大小此时为[batch_size,28,28,1]
+
+#第一个卷积层
+conv1_Weights = tf.Variable(tf.truncated_normal([5, 5, 1, 32], stddev=0.1))#定义卷积核，四个参数分别表示卷积核长，卷积核宽，步长，数量
+conv1_biases = tf.Variable(tf.constant(0.1, shape=[32]))#定义偏置
+#计算卷积，padding策略为'SAME',此时数据大小为[batch_size,28,28,32]
+conv1_conv2d = tf.nn.conv2d(X_images, conv1_Weights, strides=[1, 1, 1, 1], padding='SAME') + conv1_biases 
+conv1_activated = tf.nn.relu(conv1_conv2d)#定义激活函数并计算
+#定义池化层并计算，此时数据大小为[batch_size,14,14,32]
+conv1_pooled = tf.nn.max_pool(conv1_activated, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+#第二个卷积层
+conv2_Weights = tf.Variable(tf.truncated_normal([5, 5, 32, 64], stddev=0.1))#定义卷积核，四个参数分别表示卷积核长，卷积核宽，步长，数量
+conv2_biases = tf.Variable(tf.constant(0.1, shape=[64]))#定义偏置
+#计算卷积，padding策略为'SAME',此时数据大小为[batch_size,14,14,64]
+conv2_conv2d = tf.nn.conv2d(conv1_pooled, conv2_Weights, strides=[1, 1, 1, 1], padding='SAME') + conv2_biases
+conv2_activated = tf.nn.relu(conv2_conv2d)#定义激活函数并计算
+#定义池化层并计算，此时数据大小为[batch_size,7,7,64]
+conv2_pooled = tf.nn.max_pool(conv2_activated, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+#第一个全连接层
+connect1_flat = tf.reshape(conv2_pooled, [-1, 7 * 7 * 64])#定义flat层，卷积层和全连接层之间需要一个flat层压平数据
+#权重通过tf.truncated_normal进行正态初始化，标准差设置为0.01
+connect1_Weights = tf.Variable(tf.truncated_normal([7 * 7 * 64, 1024], stddev=0.1)) 
+connect1_biases = tf.Variable(tf.constant(0.1, shape=[1024]))#偏置初始化，常量初始化
+connect1_Wx_plus_b = tf.add(tf.matmul(connect1_flat, connect1_Weights), connect1_biases)
+connect1_activated = tf.nn.relu(connect1_Wx_plus_b)#计算第一层全连接，激活函数采用relu,计算后数据大小变为 [batch_size,1024]
+#输出层
+connect2_Weights = tf.Variable(tf.truncated_normal([1024, 10], stddev=0.1))#权重通过tf.truncated_normal进行正态初始化，标准差设置为0.01
+connect2_biases = tf.Variable(tf.constant(0.1, shape=[10]))#偏置初始化，常量初始化
+connect2_Wx_plus_b = tf.add(tf.matmul(connect1_activated, connect2_Weights), connect2_biases)
+predict_y = tf.nn.softmax(connect2_Wx_plus_b)#通过softmax激活函数计算输出层,输出的数据大小为[batch_size,10]
+
+loss = tf.reduce_mean(-tf.reduce_sum(y_holder * tf.log(predict_y), 1))#损失函数
+optimizer = tf.train.AdamOptimizer(learning_rate)#优化器采用Adam，学习率采用之前定义的
+train = optimizer.minimize(loss)#训练目标为极小化损失函数
+
+init = tf.global_variables_initializer()#初始化变量
+session = tf.Session()#创建会话
+session.run(init)
+
+#训练过程
+for i in range(num_batchs):
+    train_images, train_labels = mnist.train.next_batch(batch_size)#通过next_batch方法导入批次数据
+    session.run(train, feed_dict={X_holder:train_images, y_holder:train_labels})#给占位符输入数据    
+    #每隔一定批次计算准确率
+    if i % 100 == 0:
+         #定义预测准确的规则，因为输出层经过softmax激活函数输出一个1×10向量，依次表示是数字0-9的概率，所以需要argmax返回概率最大的标签
+        correct_prediction = tf.equal(tf.argmax(predict_y, 1), tf.argmax(y_holder, 1))#定义预测一致的规则
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))#定义准确率计算规则
+        train_accuracy = session.run(accuracy, feed_dict={X_holder:train_images, y_holder:train_labels})#计算batch准确率
+        print('step:%d train accuracy:%.4f ' %(i, train_accuracy))#打印准确率
+
+#计算测试集的预测标签并输出
+#由于卷积更复杂，一次性计算10000个测试集的预测值并写入会out of memeory，因此分批次计算并写入。如果GPU内存够大可以一次性计算并写入。
+#将预测标签写入文件
+with open('肖锋_dl_result2.csv', 'w') as f:
+    f.write('predict labels'+'\n')#写入表头
+    #写入数据
+    for i in range(10):
+        test_images, test_labels = mnist.test.next_batch(1000)#读取测试集，测试集共10000个数据。
+        y_pred = tf.argmax(predict_y, 1) #返回最大概率的数字
+        test_pred = session.run(y_pred, feed_dict={X_holder:test_images, y_holder:test_labels})#返回预测标签
+        for labels in test_pred:
+            f.write(str(labels) + '\n')
+            
+
+############## tensorflow搭建LeNet-5网络
+
+import os
+os.system('cls')
+reset
+clear
+import tensorflow as tf
+
+# # 读取数据
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+
+# # 创建LeNet-5网络
+
+# 初始化所有的权值 W，给权重添加截断的正态分布噪声，标准差为0.1
+def weight_variable(shape):
+    initial = tf.truncated_normal(shape,stddev=0.1)
+    return tf.Variable(initial)
+
+# 初始化所有的偏置项 b
+def bias_variable(shape):
+    inital = tf.constant(0.1,shape=shape)
+    return tf.Variable(inital)
+
+# 构建卷积层，步长都为1
+def conv2d(x,w):
+    return tf.nn.conv2d(x,w,strides=[1,1,1,1],padding='SAME')
+
+# 构建池化层
+def max_pool_2x2(x):
+    return tf.nn.max_pool(x,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+
+# 定义占位符
+x = tf.placeholder(tf.float32,[None,784])
+y_ = tf.placeholder(tf.float32,[None,10])
+# 将数据转为合适的维度来进行后续的计算
+x_image = tf.reshape(x,[-1,28,28,1])                               
+# 构建第一个卷积层
+W_conv1 = weight_variable([5,5,1,32])                                
+b_conv1 = bias_variable([32])
+h_conv1 = tf.nn.tanh(conv2d(x_image,W_conv1) + b_conv1)                
+## 采用最大池化 
+h_pool1 = max_pool_2x2(h_conv1)                                        
+# 构建第二个卷积层
+W_conv2 = weight_variable([5,5,32,64])
+b_conv2 = bias_variable([64])
+h_conv2 = tf.nn.tanh(conv2d(h_pool1,W_conv2) + b_conv2)
+## 采用最大池化 
+h_pool2 = max_pool_2x2(h_conv2)
+# 扁平化
+h_pool2_flat = tf.reshape(h_pool2,[-1,7*7*64])
+# 构建第一个全连接层
+W_fc1 = weight_variable([7*7*64,120])
+b_fc1 = bias_variable([120])
+h_fc1 = tf.nn.tanh(tf.matmul(h_pool2_flat,W_fc1) + b_fc1)
+# 构建第二个全连接层
+W_fc2 = weight_variable([120, 84])
+b_fc2 = bias_variable([84])
+h_fc2 = tf.nn.tanh(tf.matmul(h_fc1,W_fc2) + b_fc2)
+# 构建Softmax层
+W_fc3 = weight_variable([84,10])
+b_fc3 = bias_variable([10])
+y_conv = tf.nn.softmax(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+# 采用交叉熵作为损失函数
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv),reduction_indices=[1]))
+# 采用Adam作为优化方法
+train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)                                
+correct_predition = tf.equal(tf.argmax(y_conv,1),tf.argmax(y_,1))
+# 以分类正确率作为评价标准
+accuracy = tf.reduce_mean(tf.cast(correct_predition,tf.float32))                                
+
+# # 训练模型
+
+#import os
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1' 
+# config = tf.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 0.5  # 程序最多只能占用指定gpu50%的显存
+# config.gpu_options.allow_growth = True 
+with tf.Session() as sess:
+    init_op = tf.global_variables_initializer()
+    sess.run(init_op)  
+ # 设定验证集
+    validate_feed = {x: mnist.test.images, y_: mnist.test.labels}
+    # 训练3000轮
+    for i in range(3000):
+        if i%200 == 0:
+            # 使用测试集作为训练中的验证集，每200轮查看一下网络在验证集上的分类正确率
+            validation_accuracy = sess.run(accuracy, feed_dict=validate_feed)
+            print("step %d,validation accuracy %g"%(i,validation_accuracy))
+        # 设定batch大小为128
+        batch_x, batch_y = mnist.train.next_batch(128)
+        # 将数据传入进行训练
+        sess.run(train_step, feed_dict={x:batch_x,y_:batch_y}) 
+
+############## keras搭建神经网络
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.examples.tutorials.mnist import input_data #导入读取数据的input_data
+#在同一个文件夹下解压数据集到MNIST_data文件夹，然后用input_data函数读取，标签不采用one_hot编码
+mnist = input_data.read_data_sets('MNIST_data') 
+
+train_images = mnist.train.images
+train_labels = mnist.train.labels
+test_images = mnist.test.images
+test_labels = mnist.test.labels
+
+# # 构建简单神经网络
+model = keras.Sequential([
+    # 扁平化
+    keras.layers.Flatten(),
+    # 全连接层1：120个神经元，激活函数为relu
+    keras.layers.Dense(250, activation='relu'),
+    # 全连接层2：84个神经元，激活函数为relu
+    keras.layers.Dense(150, activation='relu'),   
+    # Softmax层：10个神经元
+    keras.layers.Dense(10, activation='softmax')
+])
+
+# # 训练模型
+# 定义损失函数为稀疏交叉熵，优化方法为Adam，评价准则为正确率
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+# 训练模型
+model.fit(train_images, train_labels, # 指定训练集和训练集标签
+          validation_data=(test_images, test_labels), # 指定验证集和验证集标签,便于在训练中随时查看模型效果 
+          epochs=5, # 迭代轮数为5轮 
+          batch_size=200 # batch的大小为200
+         )
+
+############## keras搭建卷积神经网络
+
+train_images = train_images.reshape(-1, 28, 28, 1).astype('float32')
+test_images = test_images.reshape(-1, 28, 28, 1).astype('float32')
+# # 构建神经网络
+model1 = keras.Sequential([
+    # 卷积层1:32个5*5的卷积核，步长为1，输入大小为28*28*1，全0填充，激活函数为relu
+    keras.layers.Conv2D(filters=32, kernel_size=(5,5),
+                        strides=1, padding="same", input_shape=(28, 28, 1), 
+                        activation='relu', name='conv2d_1'),
+    # 池化层1：采样区域为2*2，步长为2
+    keras.layers.MaxPool2D(pool_size=(2,2), strides=2, name="maxpool_1"),
+    # 卷积层2:64个5*5的卷积核，步长为1，全0填充，激活函数为relu
+    keras.layers.Conv2D(filters=64, kernel_size=(5,5),
+                        strides=1, padding="same", activation='relu', name='conv2d_2'),
+    # 池化层2：采样区域为2*2，步长为2
+    keras.layers.MaxPool2D(pool_size=(2,2), strides=2, name="maxpool_2"),
+    # 扁平化
+    keras.layers.Flatten(),
+    # 全连接层1：1024个神经元，激活函数为relu
+    keras.layers.Dense(1024, activation='relu'),   
+    # Softmax层：10个神经元
+    keras.layers.Dense(10, activation='softmax')
+])
+# 定义损失函数为稀疏交叉熵，优化方法为Adam，评价准则为正确率
+model1.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+# 训练模型
+model1.fit(train_images, train_labels, # 指定训练集和训练集标签
+          validation_data=(test_images, test_labels), # 指定验证集和验证集标签,便于在训练中随时查看模型效果 
+          epochs=5, # 迭代轮数为5轮 
+          batch_size=200 # batch的大小为200
+         ) 
+
+
+############## keras搭建LeNet-5网络
+
+# 改变输入数据的形状，CNN的输入是4维的张量，第一维是样本大小，第二维和第三维是长度和宽度，第四维是像素通道
+train_images = train_images.reshape(-1, 28, 28, 1).astype('float32')
+test_images = test_images.reshape(-1, 28, 28, 1).astype('float32')
+# 像素的灰度值在0-255之间，为了使模型的训练效果更好，将数值归一化映射到0-1之间
+train_images = train_images / 255
+test_images = test_images / 255
+
+# # 构建LeNet-5网络
+model = keras.Sequential([
+    # 卷积层1:32个5*5的卷积核，步长为1，输入大小为28*28*1，全0填充，激活函数为tanh
+    keras.layers.Conv2D(filters=32, kernel_size=(5,5),
+                        strides=1, padding="same", input_shape=(28, 28, 1), 
+                        activation='tanh', name='conv2d_1'),
+    # 池化层1：采样区域为2*2，步长为2
+    keras.layers.MaxPool2D(pool_size=(2,2), strides=2, name="maxpool_1"),
+    # 卷积层2:64个5*5的卷积核，步长为1，全0填充，激活函数为tanh
+    keras.layers.Conv2D(filters=64, kernel_size=(5,5),
+                        strides=1, padding="same", activation='tanh', name='conv2d_2'),
+    # 池化层2：采样区域为2*2，步长为2
+    keras.layers.MaxPool2D(pool_size=(2,2), strides=2, name="maxpool_2"),
+    # 扁平化
+    keras.layers.Flatten(),
+    # 全连接层1：120个神经元，激活函数为tanh
+    keras.layers.Dense(120, activation='tanh'),
+    # 全连接层2：84个神经元，激活函数为tanh
+    keras.layers.Dense(84, activation='tanh'),   
+    # Softmax层：10个神经元
+    keras.layers.Dense(10, activation='softmax')
+])
+
+# # 训练模型
+
+# 定义损失函数为稀疏交叉熵，优化方法为Adam，评价准则为正确率
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+# 指定GPU进行训练
+#import os
+## 选择GPU 0还是1
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1' 
+# config = tf.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 0.5  # 程序最多只能占用指定gpu50%的显存
+# config.gpu_options.allow_growth = True     
+#sess = tf.Session()
+#keras.backend.set_session(sess)
+# 训练模型
+model.fit(train_images, train_labels, # 指定训练集和训练集标签
+          validation_data=(test_images, test_labels), # 指定验证集和验证集标签,便于在训练中随时查看模型效果 
+          epochs=5, # 迭代轮数为5轮 
+          batch_size=200 # batch的大小为200
+         ) 
+
+
+
+
+
+
+
+
+
+
+
+
+
