@@ -12,6 +12,10 @@ git remote add origin https://github.com/xf0xf/coding_.git
 git push -u origin master
 
 git clone https://github.com/xf0xf/coding_.git
-
+cd coding_
+ls
+git add README.md
+git commit -m "first commit"
+git push origin master
 
 test111111
