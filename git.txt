@@ -23,3 +23,6 @@ git commit 不加备注解决办法：https://www.cnblogs.com/wei325/p/5278922.h
 	2.修改最上面那行黄色合并信息,可以不修改
 	3.按键盘左上角"Esc"
 	4.输入":wq",注意是冒号+wq,按回车键即可
+
+
+home commit
