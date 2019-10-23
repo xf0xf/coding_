@@ -178,7 +178,7 @@ data = data_df.drop('Class',axis=1)
 2.data_z抽样拆分为data_train+data_test,建模
 3.根据模型预测data_pre
 
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model.logistic import LogisticRegression
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
@@ -188,8 +188,9 @@ from sklearn.model_selection import GridSearchCV
 import xgboost as xgb
 from xgboost.sklearn import XGBClassifier
 import lightgbm as lgb
+from sklearn.ensemble import GradientBoostingClassifier
 
-from sklearn.cross_validation import train_test_split
+
 data_train_x, data_test_x, data_train_y, data_test_y = train_test_split(train_x_x, train_y, test_size=0.25,random_state=13)
 #分层抽样
 data_train_x, data_test_x, data_train_y, data_test_y = train_test_split(X, Y, test_size=0.3,random_state=13,stratify=Y)
@@ -221,7 +222,6 @@ show_accuracy(model,data_train_x, data_test_x, data_train_y, data_test_y)
 
 
 #逻辑回归
-from sklearn.linear_model.logistic import LogisticRegression
 lr = LogisticRegression(penalty='l2') #设置样本为非平衡样本  设置正负样本权重lr = LogisticRegression(class_weight={0:0.3,1:0.7}) 
 lr_fit = lr.fit(data_train_x, data_train_y)
 lr_train_pred01 = lr_fit.predict(data_train_x)
@@ -249,7 +249,6 @@ pred_best_auc = roc_auc_score(test_y,probs01)
 
 
 #KNN分类
-from sklearn.neighbors import KNeighborsClassifier
 knn = KNeighborsClassifier(n_neighbors=10,n_jobs=-1)
 model = GridSearchCV(knn, param_grid={'n_neighbors':np.arange(2,15)}, cv=4,scoring='f1')
 model.fit(data_train_x, data_train_y)
@@ -265,7 +264,6 @@ print('测试集F1 值：', f1_score(data_test_y, knn_test_pred01))
 ans_ans['knn_label'] = knn_fit.predict(data_0)
 
 #SVM
-from sklearn import svm
 clf=svm.SVC(C=0.8, kernel='rbf')
 param_test = {
  'C':np.arange(0.1,2.0,0.1),
@@ -287,7 +285,6 @@ print('测试集精确度：', precision_score(y_test, lr_test_pred01))
 print('测试集F1 值：', f1_score(y_test, lr_test_pred01))
 
 #随机森林
-from sklearn.ensemble import RandomForestClassifier
 rf = RandomForestClassifier(n_estimators=50, criterion='gini', max_depth=7, min_samples_leaf=11, min_samples_split=30, max_features=0.5,n_jobs=-1)
 param = {'n_estimators':np.arange(50,200,25),
          'max_features':np.arange(2, 8),
@@ -317,8 +314,6 @@ ans_ans['rf_label'] = model.predict(data_0)
 
 #xgb
 ##https://blog.csdn.net/han_xiaoyang/article/details/52665396
-import xgboost as xgb
-from xgboost.sklearn import XGBClassifier
 gbm = xgb.XGBClassifier(learning_rate =0.1,n_estimators=100,max_depth=5,min_child_weight=1,gamma=0,subsample=0.8,colsample_bytree=0.8,objective= 'binary:logistic',nthread=4,scale_pos_weight=1,seed=13)
 param_test = {
  'max_depth':range(3,10,1),
@@ -337,7 +332,6 @@ print(classification_report(test_y, pred_xgb))
 
 
 #lightgbm
-import lightgbm as lgb
 lgbm = lgb.LGBMClassifier(silent=False)
 param_dist = {"max_depth": np.arange(10,40,5),
             "learning_rate" : [0.02,0.05,0.07],
@@ -353,7 +347,6 @@ print(classification_report(data_test_y, pred_lgb))
 
 
 #GBDT
-from sklearn.ensemble import GradientBoostingClassifier
 gbdt=GradientBoostingClassifier(loss='deviance', learning_rate=0.005
 , n_estimators=1200, subsample=0.85, min_samples_split=120 , min_samples_leaf=60
 , max_depth=9 ,max_features=7)
