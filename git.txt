@@ -1,4 +1,5 @@
-
+https://github.com/xf0xf/coding_.git
+https://github.com/xf0xf/cda2.git
 
 echo "# coding_" >> README.md
 git init
@@ -25,4 +26,5 @@ git commit 不加备注解决办法：https://www.cnblogs.com/wei325/p/5278922.h
 	4.输入":wq",注意是冒号+wq,按回车键即可
 
 
-home commit
+git reset
+git pull (git fetch + git merge)
